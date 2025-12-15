@@ -1,87 +1,83 @@
-// src/Filters.js
-import React, { useState } from 'react';
+import React from 'react';
 import { Slider, Button, Collapse, Row, Col } from 'antd';
 
 const { Panel } = Collapse;
 
-const Filters = () => {
-  const [priceRange, setPriceRange] = useState([7000000, 17000000]);
-  const [areaRange, setAreaRange] = useState([65, 900]);
-  const [selectedMaterials, setSelectedMaterials] = useState([]);
-  const [selectedFloors, setSelectedFloors] = useState([]);
-  const [selectedRooms, setSelectedRooms] = useState([]);
-  const [selectedBedrooms, setSelectedBedrooms] = useState([]);
-  const [selectedBathrooms, setSelectedBathrooms] = useState([]);
+const materialOptions = ['Кирпич', 'Монолит', 'Клееный брус'];
+const floorOptions = [1, 2, 3];
+const roomOptions = [2, 3, 4, 5, 6, 7, 8];
+const bedroomOptions = [1, 2, 3, 4, 5, 6];
+const bathroomOptions = [1, 2, 3];
 
+const initialFilters = {
+  priceRange: [7000000, 17000000],
+  areaRange: [60, 900],
+  selectedMaterials: [],
+  selectedFloors: [],
+  selectedRooms: [],
+  selectedBedrooms: [],
+  selectedBathrooms: [],
+};
+
+const Filters = ({ filters, setFilters }) => {
   const handlePriceChange = value => {
-    setPriceRange(value);
+    setFilters(prev => ({ ...prev, priceRange: value }));
   };
 
   const handleAreaChange = value => {
-    setAreaRange(value);
+    setFilters(prev => ({ ...prev, areaRange: value }));
   };
 
-  const toggleMaterial = material => {
-    setSelectedMaterials(prev => 
-      prev.includes(material) ? prev.filter(m => m !== material) : [...prev, material]
-    );
-  };
-
-  const toggleFilter = (filter, value) => {
-    const stateMap = {
-      floors: setSelectedFloors,
-      rooms: setSelectedRooms,
-      bedrooms: setSelectedBedrooms,
-      bathrooms: setSelectedBathrooms
-    };
-    const setter = stateMap[filter];
-    setter(prev => 
-      prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]
-    );
+  const toggleInList = (key, value) => {
+    setFilters(prev => {
+      const current = prev[key];
+      const next = current.includes(value) ? current.filter(v => v !== value) : [...current, value];
+      return { ...prev, [key]: next };
+    });
   };
 
   const resetFilters = () => {
-    setPriceRange([7000000, 17000000]);
-    setAreaRange([65, 900]);
-    setSelectedMaterials([]);
-    setSelectedFloors([]);
-    setSelectedRooms([]);
-    setSelectedBedrooms([]);
-    setSelectedBathrooms([]);
+    setFilters({ ...initialFilters });
   };
 
   return (
     <div className="filters">
-      <Collapse defaultActiveKey={['1', '2', '3', '4', '5', '6']} accordion={false}>
-        <Panel header="Цена" key="1">
-          <Slider 
-            range 
-            min={7000000} 
-            max={17000000} 
-            step={100000} 
-            value={priceRange} 
+      <Collapse
+        defaultActiveKey={['price', 'area', 'materials', 'floors', 'rooms', 'bedrooms', 'bathrooms']}
+        accordion={false}
+      >
+        <Panel header="Цена, ₽" key="price">
+          <Slider
+            range
+            min={7000000}
+            max={17000000}
+            step={50000}
+            value={filters.priceRange}
             onChange={handlePriceChange}
+            tooltip={{ formatter: value => `${value?.toLocaleString('ru-RU')} ₽` }}
           />
         </Panel>
 
-        <Panel header="Площадь (м²)" key="2">
-          <Slider 
-            range 
-            min={65} 
-            max={900} 
-            step={10} 
-            value={areaRange} 
+        <Panel header="Площадь (м²)" key="area">
+          <Slider
+            range
+            min={60}
+            max={900}
+            step={10}
+            value={filters.areaRange}
             onChange={handleAreaChange}
+            tooltip={{ formatter: value => `${value} м²` }}
           />
         </Panel>
 
-        <Panel header="Материалы" key="3">
+        <Panel header="Материал / технология" key="materials">
           <Row gutter={[8, 8]}>
-            {['Кирпич', 'Клееный брус', 'Монолит'].map(material => (
-              <Col span={8} key={material}>
-                <Button 
-                  type={selectedMaterials.includes(material) ? 'primary' : 'default'}
-                  onClick={() => toggleMaterial(material)}
+            {materialOptions.map(material => (
+              <Col span={12} key={material}>
+                <Button
+                  block
+                  type={filters.selectedMaterials.includes(material) ? 'primary' : 'default'}
+                  onClick={() => toggleInList('selectedMaterials', material)}
                 >
                   {material}
                 </Button>
@@ -90,13 +86,14 @@ const Filters = () => {
           </Row>
         </Panel>
 
-        <Panel header="Этажность" key="4">
+        <Panel header="Этажность" key="floors">
           <Row gutter={[8, 8]}>
-            {[1, 2, 3].map(floor => (
+            {floorOptions.map(floor => (
               <Col span={8} key={floor}>
-                <Button 
-                  type={selectedFloors.includes(floor) ? 'primary' : 'default'}
-                  onClick={() => toggleFilter('floors', floor)}
+                <Button
+                  block
+                  type={filters.selectedFloors.includes(floor) ? 'primary' : 'default'}
+                  onClick={() => toggleInList('selectedFloors', floor)}
                 >
                   {floor}
                 </Button>
@@ -105,13 +102,14 @@ const Filters = () => {
           </Row>
         </Panel>
 
-        <Panel header="Количество комнат" key="5">
+        <Panel header="Количество комнат" key="rooms">
           <Row gutter={[8, 8]}>
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].map(room => (
+            {roomOptions.map(room => (
               <Col span={8} key={room}>
-                <Button 
-                  type={selectedRooms.includes(room) ? 'primary' : 'default'}
-                  onClick={() => toggleFilter('rooms', room)}
+                <Button
+                  block
+                  type={filters.selectedRooms.includes(room) ? 'primary' : 'default'}
+                  onClick={() => toggleInList('selectedRooms', room)}
                 >
                   {room}
                 </Button>
@@ -120,13 +118,14 @@ const Filters = () => {
           </Row>
         </Panel>
 
-        <Panel header="Количество спален" key="6">
+        <Panel header="Количество спален" key="bedrooms">
           <Row gutter={[8, 8]}>
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(bedroom => (
+            {bedroomOptions.map(bedroom => (
               <Col span={8} key={bedroom}>
-                <Button 
-                  type={selectedBedrooms.includes(bedroom) ? 'primary' : 'default'}
-                  onClick={() => toggleFilter('bedrooms', bedroom)}
+                <Button
+                  block
+                  type={filters.selectedBedrooms.includes(bedroom) ? 'primary' : 'default'}
+                  onClick={() => toggleInList('selectedBedrooms', bedroom)}
                 >
                   {bedroom}
                 </Button>
@@ -134,9 +133,27 @@ const Filters = () => {
             ))}
           </Row>
         </Panel>
+
+        <Panel header="Количество санузлов" key="bathrooms">
+          <Row gutter={[8, 8]}>
+            {bathroomOptions.map(bathroom => (
+              <Col span={8} key={bathroom}>
+                <Button
+                  block
+                  type={filters.selectedBathrooms.includes(bathroom) ? 'primary' : 'default'}
+                  onClick={() => toggleInList('selectedBathrooms', bathroom)}
+                >
+                  {bathroom}
+                </Button>
+              </Col>
+            ))}
+          </Row>
+        </Panel>
       </Collapse>
-      
-      <Button type="link" onClick={resetFilters}>Сбросить фильтры</Button>
+
+      <Button className="filters-reset" size="large" block onClick={resetFilters} style={{ marginTop: 12 }}>
+        Сбросить фильтры
+      </Button>
     </div>
   );
 };

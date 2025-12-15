@@ -1,38 +1,210 @@
 .App {
-  text-align: center;
-}
+  --forest-green: #1f7a3d;
+  --forest-green-hover: #256d3f;
+  --forest-green-weak: #eff8f2;
+  --forest-green-border: #d2ead9;
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 16px 24px 40px;
+  background: #f7f9fb;
   min-height: 100vh;
+}
+
+.top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border: 1px solid #e6e8ec;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+}
+
+.brand {
+  font-weight: 700;
+  font-size: 18px;
+  color: #0c3f5f;
+}
+
+.nav-links {
+  display: flex;
+  gap: 16px;
+  font-weight: 500;
+}
+
+.nav-links a {
+  color: #1a1a1a;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.page-layout {
+  background: transparent;
+}
+
+.projects-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.projects-header h1 {
+  margin: 0;
+}
+
+.app-subtitle {
+  margin: 4px 0 0;
+  color: #60666f;
+}
+
+.chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filters {
+  text-align: left;
+  background: var(--forest-green-weak);
+  border: 1px solid var(--forest-green-border);
+  border-radius: 10px;
+  padding: 12px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+.filters .ant-collapse {
+  background: transparent;
+}
+
+.filters .ant-collapse-item {
+  background: #fff;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  border: 1px solid #eef0f3;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.filters .ant-collapse-item:hover {
+  border-color: var(--forest-green-border);
+  box-shadow: 0 0 0 3px rgba(31, 122, 61, 0.08);
+}
+
+.filters .ant-collapse-item:hover .ant-collapse-header {
+  color: var(--forest-green);
+}
+
+.filters .ant-collapse > .ant-collapse-item:last-child {
+  margin-bottom: 0;
+}
+
+.filters .ant-collapse-header {
+  font-weight: 600;
+}
+
+.filters .ant-slider-track {
+  background: var(--forest-green);
+}
+
+.filters .ant-slider-handle {
+  border-color: var(--forest-green);
+}
+
+.filters .ant-slider:hover .ant-slider-rail {
+  background: rgba(31, 122, 61, 0.18);
+}
+
+.filters .ant-slider:hover .ant-slider-track {
+  background: var(--forest-green-hover);
+}
+
+.filters .ant-slider-handle:hover,
+.filters .ant-slider-handle:focus,
+.filters .ant-slider-handle:focus-visible {
+  border-color: var(--forest-green-hover);
+}
+
+.filters .ant-slider-handle:hover::after,
+.filters .ant-slider-handle:focus::after,
+.filters .ant-slider-handle:focus-visible::after {
+  box-shadow: 0 0 0 3px rgba(31, 122, 61, 0.22);
+}
+
+.filters .ant-slider-handle::after {
+  box-shadow: 0 0 0 2px var(--forest-green);
+}
+
+.filters .ant-btn:not(.ant-btn-primary):not(.filters-reset):not(:disabled):hover {
+  border-color: var(--forest-green) !important;
+  color: var(--forest-green) !important;
+}
+
+.filters-reset {
+  background: var(--forest-green);
+  border-color: var(--forest-green);
+  color: #fff;
+  font-weight: 600;
+}
+
+.filters-reset:hover {
+  background: var(--forest-green-hover) !important;
+  border-color: var(--forest-green-hover) !important;
+  color: #fff !important;
+}
+
+.empty-state {
+  margin-top: 12px;
+  padding: 16px;
+  text-align: center;
+  background: #fff;
+  border: 1px dashed #d9d9d9;
+  border-radius: 10px;
+  color: #8c8c8c;
+}
+
+.project-card .ant-card-cover img {
+  height: 180px;
+  object-fit: cover;
+}
+
+.project-card .ant-card-meta-description {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  gap: 8px;
 }
 
-.App-link {
-  color: #61dafb;
+.card-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 14px;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.card-row.spaced {
+  color: #4a4f55;
+}
+
+.card-price {
+  margin-top: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--forest-green);
+}
+
+.ant-btn-primary {
+  background: var(--forest-green);
+  border-color: var(--forest-green);
+}
+
+.ant-btn-primary:not(:disabled):hover {
+  background: var(--forest-green-hover) !important;
+  border-color: var(--forest-green-hover) !important;
 }

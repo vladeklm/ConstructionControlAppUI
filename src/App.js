@@ -1,22 +1,47 @@
-import React, { useState } from 'react';
-import Filters from './Filters'; // Подключаем компонент фильтров
-import ProjectCard from './ProjectCard'; // Подключаем компонент карточки проекта
-import './App.css'; // Подключаем стили
-import { Row, Col } from 'antd';
+import React, { useMemo, useState } from 'react';
+import { Row, Col, Button, Tag, message } from 'antd';
+import { UserOutlined } from '@ant-design/icons';
+import Filters from './Filters';
+import ProjectCard from './ProjectCard';
+import './App.css';
 
-// Пример данных для проектов
-const projects = [
-  { id: 1, name: 'Проект 1', image: '/path-to-image1.jpg', floors: 2, material: 'Кирпич', area: 120, bedrooms: 3, bathrooms: 2, price: 15000000 },
-  { id: 2, name: 'Проект 2', image: '/path-to-image2.jpg', floors: 1, material: 'Монолит', area: 85, bedrooms: 2, bathrooms: 1, price: 8000000 },
-  { id: 3, name: 'Проект 3', image: '/path-to-image3.jpg', floors: 3, material: 'Клееный брус', area: 200, bedrooms: 4, bathrooms: 3, price: 25000000 },
-  // Добавь еще проекты...
-];
+const mediaBase = process.env.REACT_APP_MEDIA_BASE;
+
+const generateProjects = () => {
+  const materials = ['Кирпич', 'Монолит', 'Клееный брус'];
+  return Array.from({ length: 30 }, (_, index) => {
+    const id = index + 1;
+    const floors = (index % 3) + 1;
+    const rooms = 3 + (index % 6);
+    const bedrooms = 2 + (index % 4);
+    const bathrooms = 1 + (index % 3);
+    const area = 60 + ((index * 28) % 840); // 60–900
+    const price = 7000000 + (index * 340000); // 7–17 млн в пределах 30 проектов
+    const material = materials[index % materials.length];
+    return {
+      id,
+      name: `Проект ${id}`,
+      image: mediaBase
+        ? `${mediaBase}/projects/${id}.jpg`
+        : `https://via.placeholder.com/480x280?text=Project+${id}`,
+      floors,
+      material,
+      area,
+      rooms,
+      bedrooms,
+      bathrooms,
+      price,
+    };
+  });
+};
+
+const projects = generateProjects();
 
 const App = () => {
-  // Состояние фильтров
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [filters, setFilters] = useState({
     priceRange: [7000000, 17000000],
-    areaRange: [65, 900],
+    areaRange: [60, 900],
     selectedMaterials: [],
     selectedFloors: [],
     selectedRooms: [],
@@ -24,31 +49,120 @@ const App = () => {
     selectedBathrooms: [],
   });
 
-  // Функция для фильтрации проектов
-  const filteredProjects = projects.filter(project => {
-    return (
-      project.price >= filters.priceRange[0] &&
-      project.price <= filters.priceRange[1] &&
-      project.area >= filters.areaRange[0] &&
-      project.area <= filters.areaRange[1] &&
-      (filters.selectedMaterials.length === 0 || filters.selectedMaterials.includes(project.material)) &&
-      (filters.selectedFloors.length === 0 || filters.selectedFloors.includes(project.floors)) &&
-      (filters.selectedBedrooms.length === 0 || filters.selectedBedrooms.includes(project.bedrooms)) &&
-      (filters.selectedBathrooms.length === 0 || filters.selectedBathrooms.includes(project.bathrooms))
-    );
-  });
+  const filteredProjects = useMemo(
+    () =>
+      projects.filter(project => {
+        return (
+          project.price >= filters.priceRange[0] &&
+          project.price <= filters.priceRange[1] &&
+          project.area >= filters.areaRange[0] &&
+          project.area <= filters.areaRange[1] &&
+          (filters.selectedMaterials.length === 0 || filters.selectedMaterials.includes(project.material)) &&
+          (filters.selectedFloors.length === 0 || filters.selectedFloors.includes(project.floors)) &&
+          (filters.selectedRooms.length === 0 || filters.selectedRooms.includes(project.rooms)) &&
+          (filters.selectedBedrooms.length === 0 || filters.selectedBedrooms.includes(project.bedrooms)) &&
+          (filters.selectedBathrooms.length === 0 || filters.selectedBathrooms.includes(project.bathrooms))
+        );
+      }),
+    [filters]
+  );
+
+  const handleAddToOrders = project => {
+    if (!isAuthenticated) {
+      message.info('Авторизуйтесь, чтобы добавлять проекты в заказы');
+      return;
+    }
+    message.success(`Проект "${project.name}" добавлен в заказы (заглушка)`);
+  };
+
+  const handleOpenProject = project => {
+    message.info(`Открыть страницу проекта "${project.name}" (заглушка)`);
+  };
+
+  const removeTag = (key, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [key]: prev[key].filter(item => item !== value),
+    }));
+  };
 
   return (
     <div className="App">
-      <h1>Проекты</h1>
-      <Filters filters={filters} setFilters={setFilters} /> {/* Передаем фильтры в компонент фильтров */}
-      <Row gutter={[16, 16]} style={{ marginTop: '20px' }}>
-        {filteredProjects.map(project => (
-          <Col span={8} key={project.id}>
-            <ProjectCard project={project} /> {/* Рендерим карточки проектов */}
+      <header className="top-nav">
+        <div className="brand">СтройПроекты</div>
+        <nav className="nav-links">
+          <a href="#projects">Проекты</a>
+          <a href="#orders">Мои заказы</a>
+          <a href="#about">О нас</a>
+        </nav>
+        <div className="nav-actions">
+          {!isAuthenticated ? (
+            <Button type="primary" icon={<UserOutlined />} onClick={() => setIsAuthenticated(true)}>
+              Войти
+            </Button>
+          ) : (
+            <Button icon={<UserOutlined />} onClick={() => setIsAuthenticated(false)}>
+              Выйти
+            </Button>
+          )}
+        </div>
+      </header>
+
+      <div className="page-layout">
+        <Row gutter={[16, 16]}>
+          <Col xs={24} md={8} lg={7} xl={6}>
+            <Filters filters={filters} setFilters={setFilters} />
           </Col>
-        ))}
-      </Row>
+          <Col xs={24} md={16} lg={17} xl={18}>
+            <div className="projects-header">
+              <div>
+                <h1>Подбор проектов</h1>
+                <p className="app-subtitle">
+                  Доступно {filteredProjects.length} из {projects.length} проектов
+                </p>
+              </div>
+              <div className="chips">
+                {filters.selectedMaterials.map(material => (
+                  <Tag
+                    key={material}
+                    closable
+                    onClose={() => removeTag('selectedMaterials', material)}
+                  >
+                    {material}
+                  </Tag>
+                ))}
+                {filters.selectedFloors.map(floor => (
+                  <Tag
+                    key={`floor-${floor}`}
+                    closable
+                    onClose={() => removeTag('selectedFloors', floor)}
+                  >
+                    {floor} этаж
+                  </Tag>
+                ))}
+              </div>
+            </div>
+
+            <Row gutter={[16, 16]} id="projects">
+              {filteredProjects.map(project => (
+                <Col xs={24} sm={12} lg={8} key={project.id}>
+                  <ProjectCard
+                    project={project}
+                    onOpen={handleOpenProject}
+                    onAdd={handleAddToOrders}
+                    isAuthenticated={isAuthenticated}
+                  />
+                </Col>
+              ))}
+              {filteredProjects.length === 0 && (
+                <Col span={24}>
+                  <div className="empty-state">Нет проектов по выбранным параметрам</div>
+                </Col>
+              )}
+            </Row>
+          </Col>
+        </Row>
+      </div>
     </div>
   );
 };

@@ -1,30 +1,50 @@
 import React from 'react';
-import { Card } from 'antd';
-import { HomeOutlined, AreaChartOutlined, RestOutlined } from '@ant-design/icons'; // Изменили иконку для санузла
+import { Card, Button, Tooltip } from 'antd';
+import { HomeOutlined, AreaChartOutlined, RestOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 
-const ProjectCard = ({ project }) => {
+const ProjectCard = ({ project, onOpen, onAdd, isAuthenticated }) => {
+  const handleOpen = () => onOpen?.(project);
+  const handleAdd = e => {
+    e.stopPropagation();
+    onAdd?.(project);
+  };
+
   return (
     <Card
       hoverable
-      style={{ width: 240, marginBottom: 20 }}
-      cover={<img alt="project" src={project.image} />}
+      className="project-card"
+      cover={<img alt={project.name} src={project.image} />}
+      onClick={handleOpen}
     >
       <Card.Meta
         title={project.name}
         description={
           <>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>{project.floors} этажей</span>
+            <div className="card-row">
+              <span>{project.floors} этажа</span>
               <span>{project.material}</span>
             </div>
-            <div style={{ marginTop: '10px' }}>
-              <span><HomeOutlined /> {project.area} м²</span>
-              <span style={{ marginLeft: '10px' }}><AreaChartOutlined /> {project.bedrooms} спален</span>
-              <span style={{ marginLeft: '10px' }}><RestOutlined /> {project.bathrooms} санузлов</span> {/* Изменено на RestOutlined */}
+            <div className="card-row spaced">
+              <span><AreaChartOutlined /> {project.area} м²</span>
+              <span><HomeOutlined /> {project.rooms} комн.</span>
             </div>
-            <div style={{ marginTop: '10px', color: 'green' }}>
-              {project.price} руб.
+            <div className="card-row spaced">
+              <span>Спален: {project.bedrooms}</span>
+              <span><RestOutlined /> Санузлов: {project.bathrooms}</span>
             </div>
+            <div className="card-price">
+              {project.price.toLocaleString('ru-RU')} ₽
+            </div>
+            <Tooltip title={isAuthenticated ? 'Добавить в заказы' : 'Авторизуйтесь, чтобы добавить в заказы'}>
+              <Button
+                type="primary"
+                icon={<ShoppingCartOutlined />}
+                block
+                onClick={handleAdd}
+              >
+                В заказ
+              </Button>
+            </Tooltip>
           </>
         }
       />
