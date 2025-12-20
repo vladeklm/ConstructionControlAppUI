@@ -1,9 +1,4 @@
 .App {
-  --forest-green: #1f7a3d;
-  --forest-green-hover: #256d3f;
-  --forest-green-weak: #eff8f2;
-  --forest-green-border: #d2ead9;
-
   max-width: 1280px;
   margin: 0 auto;
   padding: 16px 24px 40px;
@@ -43,6 +38,76 @@
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.auth-modal .ant-modal-content {
+  border-radius: 14px;
+  box-shadow: 0 16px 40px rgba(12, 63, 95, 0.18);
+}
+
+.auth-modal .ant-modal-header {
+  border-bottom: 1px solid #eef0f3;
+  border-radius: 14px 14px 0 0;
+}
+
+.auth-modal .ant-modal-title {
+  font-weight: 700;
+  color: #0c3f5f;
+}
+
+.auth-modal .ant-tabs-nav::before {
+  border-bottom-color: #e6e8ec;
+}
+
+.auth-modal .ant-tabs-ink-bar {
+  background: var(--forest-green);
+}
+
+.auth-modal .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: var(--forest-green);
+}
+
+.auth-modal .ant-tabs-tab:hover .ant-tabs-tab-btn {
+  color: var(--forest-green-hover);
+}
+
+.auth-modal .ant-form-item {
+  margin-bottom: 12px;
+}
+
+.auth-modal .ant-input,
+.auth-modal .ant-input-affix-wrapper,
+.auth-modal .ant-select-selector {
+  border-radius: 8px;
+}
+
+.auth-modal .ant-input:focus,
+.auth-modal .ant-input-affix-wrapper-focused,
+.auth-modal .ant-select-focused .ant-select-selector {
+  border-color: var(--forest-green);
+  box-shadow: 0 0 0 2px rgba(31, 122, 61, 0.16);
+}
+
+.auth-modal .ant-btn-primary {
+  background: var(--forest-green);
+  border-color: var(--forest-green);
+  color: #fff;
+  font-weight: 600;
+}
+
+.auth-modal .ant-btn-primary:not(:disabled):hover {
+  background: var(--forest-green-hover);
+  border-color: var(--forest-green-hover);
+  color: #fff;
+}
+
+.user-info {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #1a1a1a;
+  font-weight: 500;
 }
 
 .page-layout {

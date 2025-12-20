@@ -3,6 +3,8 @@ import { Row, Col, Button, Tag, message } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
 import Filters from './Filters';
 import ProjectCard from './ProjectCard';
+import AuthModal from './components/AuthModal';
+import { useAuth } from './auth/AuthContext';
 import './App.css';
 
 const mediaBase = process.env.REACT_APP_MEDIA_BASE;
@@ -38,7 +40,9 @@ const generateProjects = () => {
 const projects = generateProjects();
 
 const App = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { isAuthenticated, user, signOut } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authModalTab, setAuthModalTab] = useState('login');
   const [filters, setFilters] = useState({
     priceRange: [7000000, 17000000],
     areaRange: [60, 900],
@@ -67,9 +71,15 @@ const App = () => {
     [filters]
   );
 
+  const openAuth = tab => {
+    setAuthModalTab(tab);
+    setAuthModalOpen(true);
+  };
+
   const handleAddToOrders = project => {
     if (!isAuthenticated) {
       message.info('Авторизуйтесь, чтобы добавлять проекты в заказы');
+      openAuth('login');
       return;
     }
     message.success(`Проект "${project.name}" добавлен в заказы (заглушка)`);
@@ -97,13 +107,16 @@ const App = () => {
         </nav>
         <div className="nav-actions">
           {!isAuthenticated ? (
-            <Button type="primary" icon={<UserOutlined />} onClick={() => setIsAuthenticated(true)}>
+            <Button type="primary" icon={<UserOutlined />} onClick={() => openAuth('login')}>
               Войти
             </Button>
           ) : (
-            <Button icon={<UserOutlined />} onClick={() => setIsAuthenticated(false)}>
-              Выйти
-            </Button>
+            <>
+              <span className="user-info">{user?.fullName || user?.login}</span>
+              <Button icon={<UserOutlined />} onClick={signOut}>
+                Выйти
+              </Button>
+            </>
           )}
         </div>
       </header>
@@ -163,6 +176,12 @@ const App = () => {
           </Col>
         </Row>
       </div>
+
+      <AuthModal
+        open={authModalOpen}
+        initialTab={authModalTab}
+        onClose={() => setAuthModalOpen(false)}
+      />
     </div>
   );
 };
