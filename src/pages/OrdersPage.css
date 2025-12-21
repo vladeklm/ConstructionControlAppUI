@@ -1,0 +1,132 @@
+.orders-page {
+    padding: 20px;
+    background: #f0f2f5;
+    min-height: calc(100vh - 64px);
+}
+
+.orders-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.orders-header h1, .orders-header h2 {
+    margin: 0;
+    color: #0c3f5f;
+}
+
+.order-card {
+    cursor: pointer;
+    border: 1px solid #e8e8e8;
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.order-card:hover {
+    border-color: #1f7a3d;
+    box-shadow: 0 8px 24px rgba(31, 122, 61, 0.15);
+    transform: translateY(-2px);
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+
+.order-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.order-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.order-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #666;
+    font-size: 13px;
+}
+
+.order-actions {
+    margin-top: auto;
+    padding-top: 16px;
+    display: flex;
+    gap: 8px;
+}
+
+/* Стили для статусов */
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-submitted {
+    background-color: #e6f7ff;
+    color: #1890ff;
+}
+
+.status-in_review {
+    background-color: #fff7e6;
+    color: #fa8c16;
+}
+
+.status-approved {
+    background-color: #f6ffed;
+    color: #52c41a;
+}
+
+.status-declined {
+    background-color: #fff1f0;
+    color: #ff4d4f;
+}
+
+.status-converted {
+    background-color: #e6fffb;
+    color: #13c2c2;
+}
+
+.status-completed {
+    background-color: #f9f0ff;
+    color: #722ed1;
+}
+
+/* Пагинация */
+.pagination-container {
+    text-align: center;
+    margin-top: 24px;
+    padding: 16px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* Улучшенные отступы для карточек */
+.ant-col {
+    margin-bottom: 16px;
+}
+
+/* Для лучшего выравнивания содержимого карточек */
+.order-card .ant-card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}

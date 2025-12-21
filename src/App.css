@@ -273,3 +273,77 @@
   background: var(--forest-green-hover) !important;
   border-color: var(--forest-green-hover) !important;
 }
+
+.layout-container {
+  min-height: 100vh;
+}
+
+.page-content {
+  padding: 24px;
+  background: #f7f9fb;
+  min-height: calc(100vh - 64px);
+}
+
+/* Стили для страницы заказов */
+.orders-page {
+  background: #fff;
+  border-radius: 10px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.orders-page h1 {
+  color: #0c3f5f;
+  margin-bottom: 24px;
+}
+
+.orders-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+}
+
+.order-card {
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 16px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.order-card:hover {
+  border-color: var(--forest-green);
+  box-shadow: 0 4px 12px rgba(31, 122, 61, 0.15);
+}
+
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.order-project {
+  font-weight: 600;
+  color: #0c3f5f;
+  margin-bottom: 4px;
+}
+
+.order-address {
+  color: #666;
+  font-size: 14px;
+}
+
+.order-meta {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  color: #888;
+  font-size: 13px;
+}
+
+.order-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}

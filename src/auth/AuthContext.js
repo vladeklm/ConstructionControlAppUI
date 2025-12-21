@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import * as authApi from '../api/authApi';
 
-const STORAGE_TOKEN_KEY = 'auth.token';
-const STORAGE_USER_KEY = 'auth.user';
+export const STORAGE_TOKEN_KEY = 'auth.token';
+export const STORAGE_USER_KEY = 'auth.user';
 
 const AuthContext = createContext(null);
 
@@ -22,6 +22,8 @@ const readStoredAuth = () => {
 
 export function AuthProvider({ children }) {
   const [{ token, user }, setAuth] = useState(() => readStoredAuth());
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authModalTab, setAuthModalTab] = useState('login');
 
   useEffect(() => {
     if (token) localStorage.setItem(STORAGE_TOKEN_KEY, token);
@@ -43,6 +45,7 @@ export function AuthProvider({ children }) {
       email: result?.email,
     };
     setAuth({ token: nextToken, user: nextUser });
+    setAuthModalOpen(false);
     return result;
   };
 
@@ -56,6 +59,7 @@ export function AuthProvider({ children }) {
       email: result?.email,
     };
     setAuth({ token: nextToken, user: nextUser });
+    setAuthModalOpen(false);
     return result;
   };
 
@@ -63,16 +67,30 @@ export function AuthProvider({ children }) {
     setAuth({ token: '', user: null });
   };
 
+  const openAuthModal = (tab = 'login') => {
+    setAuthModalTab(tab);
+    setAuthModalOpen(true);
+  };
+
+  const closeAuthModal = () => {
+    setAuthModalOpen(false);
+  };
+
   const value = useMemo(
     () => ({
       token,
       user,
       isAuthenticated,
+      authModalOpen,
+      authModalTab,
       signIn,
       signUp,
       signOut,
+      openAuthModal,
+      closeAuthModal,
+      setAuthModalTab,
     }),
-    [token, user, isAuthenticated]
+    [token, user, isAuthenticated, authModalOpen, authModalTab]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

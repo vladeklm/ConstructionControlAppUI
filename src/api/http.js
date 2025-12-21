@@ -1,3 +1,5 @@
+import {STORAGE_TOKEN_KEY} from "../auth/AuthContext";
+
 const normalizeBaseUrl = baseUrl => {
   if (!baseUrl) return '';
   return baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
@@ -29,17 +31,24 @@ export async function apiFetch(path, options = {}) {
   const {
     method = 'GET',
     body,
-    token,
+    params,
     headers: extraHeaders,
     ...rest
   } = options;
 
-  const url = `${API_BASE_URL}${normalizePath(path)}`;
+  let url = `${API_BASE_URL}${normalizePath(path)}`;
+
+  if (params) {
+    const queryParams = new URLSearchParams(params).toString();
+    url += url.includes('?') ? `&${queryParams}` : `?${queryParams}`;
+  }
 
   const headers = {
     Accept: 'application/json',
     ...(extraHeaders || {}),
   };
+
+  const token = localStorage.getItem(STORAGE_TOKEN_KEY) || '';
 
   if (token) {
     headers.Authorization = `Bearer ${token}`;
