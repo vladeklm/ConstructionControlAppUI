@@ -2,7 +2,10 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {Button, Form, Input, message, Modal, Select, Tabs} from 'antd';
 import {useAuth} from '../auth/AuthContext';
 
-const ROLE_OPTIONS = [{value: 'CUSTOMER', label: 'CUSTOMER'}];
+const ROLE_OPTIONS = [
+    { value: 'CUSTOMER', label: 'Клиент' },
+    { value: 'MANAGER', label: 'Менеджер' },
+];
 const PHONE_PATTERN = /^(\+7|8)(?:-\d{3}){2}(?:-\d{2}){2}$/;
 
 const pickDisplayName = user => user?.fullName || user?.login || '';

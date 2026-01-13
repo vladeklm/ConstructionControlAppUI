@@ -1,11 +1,12 @@
 import React from 'react';
 import {BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate} from 'react-router-dom';
 import {Row, Col, Button, Layout, Space, Dropdown} from 'antd';
-import {UserOutlined, OrderedListOutlined, SettingOutlined, LogoutOutlined} from '@ant-design/icons';
+import {UserOutlined, OrderedListOutlined, SettingOutlined, LogoutOutlined, PlusOutlined} from '@ant-design/icons';
 import AuthModal from './components/AuthModal';
 import { useAuth } from './auth/AuthContext';
 import ProjectsPage from './pages/ProjectsPage';
 import OrdersPage from './pages/OrdersPage';
+import ProjectDetailsPage from './pages/ProjectDetailsPage';
 
 import './App.css';
 import OrderDetailsPage from "./pages/OrderDetailsPage";
@@ -16,14 +17,24 @@ const Navigation = () => {
     const { isAuthenticated, user, signOut, openAuthModal  } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
+    const isManager = user?.role === 'MANAGER';
+
+    const managerMenuItem = {
+        key: 'create-project',
+        icon: <PlusOutlined />,
+        label: 'Добавить проект',
+        onClick: () => navigate('/projects', { state: { openCreate: true } })
+    };
+
+    const ordersMenuItem = {
+        key: 'orders',
+        icon: <OrderedListOutlined />,
+        label: 'Мои заказы',
+        onClick: () => navigate('/orders')
+    };
 
     const userMenuItems = [
-        {
-            key: 'orders',
-            icon: <OrderedListOutlined />,
-            label: 'Мои заказы',
-            onClick: () => navigate('/orders')
-        },
+        isManager ? managerMenuItem : ordersMenuItem,
         {
             key: 'settings',
             icon: <SettingOutlined />,
@@ -133,6 +144,7 @@ const AppContent = () => {
               <Routes>
                   <Route path="/" element={<ProjectsPage/>} />
                   <Route path="/projects" element={<ProjectsPage/>} />
+                  <Route path="/projects/:id" element={<ProjectDetailsPage />} />
                   <Route path="/orders" element={<OrdersPage />} />
                   <Route path="/orders/:id" element={<OrderDetailsPage />} />
                   {/*<Route path="/construction/:objectId" element={<ConstructionPage />} />*/}
