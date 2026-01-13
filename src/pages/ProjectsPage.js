@@ -1,74 +1,97 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // Добавили useCallback
 import { useNavigate } from 'react-router-dom';
-import { Row, Col, Tag,  message } from 'antd';
+import { Row, Col, Tag, message, Spin } from 'antd';
 import { useAuth } from '../auth/AuthContext';
 import ProjectCard from '../components/ProjectCard';
 import Filters from "../components/Filters";
+import { apiFetch } from '../api/http';
 
 const mediaBase = process.env.REACT_APP_MEDIA_BASE;
-
-const generateProjects = () => {
-    const materials = ['Кирпич', 'Монолит', 'Клееный брус'];
-    return Array.from({ length: 30 }, (_, index) => {
-        const id = index + 1;
-        const floors = (index % 3) + 1;
-        const rooms = 3 + (index % 6);
-        const bedrooms = 2 + (index % 4);
-        const bathrooms = 1 + (index % 3);
-        const area = 60 + ((index * 28) % 840); // 60–900
-        const price = 7000000 + (index * 340000); // 7–17 млн в пределах 30 проектов
-        const material = materials[index % materials.length];
-        return {
-            id,
-            name: `Проект ${id}`,
-            image: mediaBase
-                ? `${mediaBase}/projects/${id}.jpg`
-                : `https://www.gwd.ru/upload/resize_cache/iblock/97f/847_556_2619711fa078991f0a23d032687646b21/97f67b8327b47781ad683df04fc6d192.jpg.webp`,
-            floors,
-            material,
-            area,
-            rooms,
-            bedrooms,
-            bathrooms,
-            price,
-        };
-    });
-};
-
-const projects = generateProjects();
 
 const ProjectsPage = () => {
     const navigate = useNavigate();
     const { isAuthenticated, openAuthModal } = useAuth();
+
+    const [projects, setProjects] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [materialsList, setMaterialsList] = useState([]); // Добавим список материалов для отображения имен в тегах
+
     const [filters, setFilters] = useState({
         priceRange: [7000000, 17000000],
         areaRange: [60, 900],
         selectedMaterials: [],
         selectedFloors: [],
-        selectedRooms: [],
-        selectedBedrooms: [],
-        selectedBathrooms: [],
     });
 
+    // Загрузка списка материалов (для корректного отображения имен в тегах)
+    useEffect(() => {
+        const fetchMaterials = async () => {
+            try {
+                const data = await apiFetch('/projects/materials');
+                setMaterialsList(data);
+            } catch (error) {
+                console.error('Failed to load materials', error);
+            }
+        };
+        fetchMaterials();
+    }, []);
 
-    const filteredProjects = useMemo(
-        () =>
-            projects.filter(project => {
-                return (
-                    project.price >= filters.priceRange[0] &&
-                    project.price <= filters.priceRange[1] &&
-                    project.area >= filters.areaRange[0] &&
-                    project.area <= filters.areaRange[1] &&
-                    (filters.selectedMaterials.length === 0 || filters.selectedMaterials.includes(project.material)) &&
-                    (filters.selectedFloors.length === 0 || filters.selectedFloors.includes(project.floors)) &&
-                    (filters.selectedRooms.length === 0 || filters.selectedRooms.includes(project.rooms)) &&
-                    (filters.selectedBedrooms.length === 0 || filters.selectedBedrooms.includes(project.bedrooms)) &&
-                    (filters.selectedBathrooms.length === 0 || filters.selectedBathrooms.includes(project.bathrooms))
-                );
-            }),
-        [filters]
-    );
+    // Оборачиваем функцию в useCallback. Зависимость - filters.
+    // Теперь функция будет пересоздаваться только при изменении filters.
+    const loadProjects = useCallback(async () => {
+        try {
+            setIsLoading(true);
 
+            const params = {};
+
+            if (filters.priceRange) {
+                params.priceMin = filters.priceRange[0];
+                params.priceMax = filters.priceRange[1];
+            }
+
+            if (filters.areaRange) {
+                params.areaMin = filters.areaRange[0];
+                params.areaMax = filters.areaRange[1];
+            }
+
+            if (filters.selectedFloors && filters.selectedFloors.length > 0) {
+                params.floors = filters.selectedFloors;
+            }
+
+            if (filters.selectedMaterials && filters.selectedMaterials.length > 0) {
+                params.materials = filters.selectedMaterials;
+            }
+
+            const data = await apiFetch('/projects', { params });
+
+            const formattedProjects = data.map(item => ({
+                id: item.id,
+                name: item.name,
+                image: item.previewImageUrl.startsWith('http')
+                ? item.previewImageUrl
+                : `${mediaBase}${item.previewImageUrl}`,
+                floors: item.floors,
+                material: item.mainMaterials,
+                area: item.totalArea,
+                price: item.basePrice,
+                rooms: null,
+                bedrooms: null,
+                bathrooms: null,
+            }));
+
+            setProjects(formattedProjects);
+        } catch (error) {
+            console.error('Ошибка при загрузке проектов:', error);
+            message.error('Не удалось загрузить список проектов');
+        } finally {
+            setIsLoading(false);
+        }
+    }, [filters]); // Зависимость от filters
+
+    // Теперь useEffect зависит от loadProjects, что безопасно благодаря useCallback
+    useEffect(() => {
+        loadProjects();
+    }, [loadProjects]);
 
     const handleAddToOrders = project => {
         if (!isAuthenticated) {
@@ -91,63 +114,75 @@ const ProjectsPage = () => {
         }));
     };
 
-    return (
-        <div className="page-layout">
-            <Row gutter={[16, 16]}>
-                <Col xs={24} md={8} lg={7} xl={6}>
-                    <Filters filters={filters} setFilters={setFilters} />
-                </Col>
-                <Col xs={24} md={16} lg={17} xl={18}>
-                    <div className="projects-header">
-                        <div>
-                            <h1>Подбор проектов</h1>
-                            <p className="app-subtitle">
-                                Доступно {filteredProjects.length} из {projects.length} проектов
-                            </p>
-                        </div>
-                        <div className="chips">
-                            {filters.selectedMaterials.map(material => (
-                                <Tag
-                                    key={material}
-                                    closable
-                                    onClose={() => removeTag('selectedMaterials', material)}
-                                >
-                                    {material}
-                                </Tag>
-                            ))}
-                            {filters.selectedFloors.map(floor => (
-                                <Tag
-                                    key={`floor-${floor}`}
-                                    closable
-                                    onClose={() => removeTag('selectedFloors', floor)}
-                                >
-                                    {floor} этаж
-                                </Tag>
-                            ))}
-                        </div>
-                    </div>
+    // Вспомогательная функция для получения имени материала по коду
+    const getMaterialName = (code) => {
+        const mat = materialsList.find(m => m.code === code);
+        return mat ? mat.name : code;
+    };
 
-                    <Row gutter={[16, 16]} id="projects">
-                        {filteredProjects.map(project => (
-                            <Col xs={24} sm={12} lg={8} key={project.id}>
-                                <ProjectCard
-                                    project={project}
-                                    onOpen={handleOpenProject}
-                                    onAdd={handleAddToOrders}
-                                    isAuthenticated={isAuthenticated}
-                                />
-                            </Col>
-                        ))}
-                        {filteredProjects.length === 0 && (
-                            <Col span={24}>
-                                <div className="empty-state">Нет проектов по выбранным параметрам</div>
-                            </Col>
-                        )}
-                    </Row>
-                </Col>
-            </Row>
-        </div>
-    );
+    return (
+<div className="page-layout">
+<Row gutter={[16, 16]}>
+<Col xs={24} md={8} lg={7} xl={6}>
+<Filters filters={filters} setFilters={setFilters} />
+</Col>
+<Col xs={24} md={16} lg={17} xl={18}>
+<div className="projects-header">
+<div>
+<h1>Подбор проектов</h1>
+<p className="app-subtitle">
+Найдено проектов: {projects.length}
+</p>
+</div>
+<div className="chips">
+{filters.selectedMaterials.map(code => (
+<Tag
+key={code}
+closable
+onClose={() => removeTag('selectedMaterials', code)}
+>
+{getMaterialName(code)} {/* Теперь отображаем читаемое имя */}
+</Tag>
+))}
+{filters.selectedFloors.map(floor => (
+<Tag
+key={`floor-${floor}`}
+closable
+onClose={() => removeTag('selectedFloors', floor)}
+>
+{floor} этаж
+</Tag>
+))}
+</div>
+</div>
+
+{isLoading ? (
+<div style={{ textAlign: 'center', padding: '50px' }}>
+<Spin size="large" tip="Загрузка проектов..." />
+</div>
+) : (
+<Row gutter={[16, 16]} id="projects">
+{projects.map(project => (
+<Col xs={24} sm={12} lg={8} key={project.id}>
+<ProjectCard
+project={project}
+onOpen={handleOpenProject}
+onAdd={handleAddToOrders}
+isAuthenticated={isAuthenticated}
+/>
+</Col>
+))}
+{projects.length === 0 && (
+<Col span={24}>
+<div className="empty-state">Нет проектов по выбранным параметрам</div>
+</Col>
+)}
+</Row>
+)}
+</Col>
+</Row>
+</div>
+);
 };
 
 export default ProjectsPage;
