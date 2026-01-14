@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Row, Col, Card, Tag, Button, Space, message, Empty, Spin, Typography, Tooltip } from 'antd';
 import { EyeOutlined, PlusOutlined, HomeOutlined, PhoneOutlined, MailOutlined, CalendarOutlined, CopyOutlined } from '@ant-design/icons';
 import { useAuth } from '../auth/AuthContext';
-import { apiFetch } from '../api/http';
 import './OrdersPage.css';
+import {getOrders} from "../api/ordersApi";
 
 const { Title, Text } = Typography;
 
@@ -24,14 +24,7 @@ const OrdersPage = () => {
 
         setLoading(true);
         try {
-            const response = await apiFetch('/orders', {
-                token,
-                method: 'GET',
-                params: {
-                    page: page - 1,
-                    size,
-                }
-            });
+            const response = await getOrders({page: page - 1, size: size,});
 
             const sortedOrders = response.content
                 ? [...response.content].sort((a, b) =>

@@ -1,23 +1,15 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Button, Card, Carousel, Col, Empty, message, Row, Spin, Typography } from 'antd';
+import { Button, Card, Col, Empty, message, Row, Spin, Typography } from 'antd';
 import { ShoppingCartOutlined } from '@ant-design/icons';
 import { useAuth } from '../auth/AuthContext';
 import { getProjectById } from '../api/ordersApi';
 import { API_BASE_URL } from '../api/http';
 import CreateOrderModal from '../components/CreateOrderModal';
+import ProjectImagesCarousel from '../components/ProjectImagesCarousel';
 import './ProjectDetailsPage.css';
 
 const { Title, Paragraph, Text } = Typography;
-
-const mediaBase = API_BASE_URL.replace(/\/api\/?$/, '').replace(/\/$/, '');
-// previewImageUrl/media.url is relative (e.g. /uploads/1_1.jpg), so prepend API base without /api
-const resolveImageUrl = url => {
-  if (!url) return '';
-  if (/^https?:\/\//i.test(url)) return url;
-  const path = url.startsWith('/') ? url : `/${url}`;
-  return `${mediaBase}${path}`;
-};
 
 const formatValue = value => (value === null || value === undefined || value === '' ? '-' : value);
 
@@ -35,8 +27,6 @@ const ProjectDetailsPage = () => {
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [orderModalOpen, setOrderModalOpen] = useState(false);
-  const carouselRef = useRef(null);
-  const dragStartRef = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
     let active = true;
@@ -60,33 +50,6 @@ const ProjectDetailsPage = () => {
     };
   }, [id]);
 
-  const mediaUrls = useMemo(() => {
-    if (!project?.media) return [];
-    return [...project.media]
-      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
-      .map(item => resolveImageUrl(item.url))
-      .filter(Boolean);
-  }, [project]);
-
-  const handleSlideMouseDown = event => {
-    dragStartRef.current = { x: event.clientX, y: event.clientY };
-  };
-
-  const handleSlideMouseUp = event => {
-    if (!carouselRef.current) return;
-    const start = dragStartRef.current;
-    const dx = Math.abs(event.clientX - start.x);
-    const dy = Math.abs(event.clientY - start.y);
-    if (dx > 6 || dy > 6) return;
-    const rect = event.currentTarget.getBoundingClientRect();
-    const clickX = event.clientX - rect.left;
-    if (clickX < rect.width / 2) {
-      carouselRef.current.prev();
-    } else {
-      carouselRef.current.next();
-    }
-  };
-
   const handleCreateOrder = () => {
     if (!isAuthenticated) {
       message.info('Пожалуйста, войдите чтобы создать заявку.');
@@ -95,6 +58,7 @@ const ProjectDetailsPage = () => {
     }
     setOrderModalOpen(true);
   };
+
 
   if (loading) {
     return (
@@ -123,26 +87,10 @@ const ProjectDetailsPage = () => {
               {project.name || 'Проект'}
             </Title>
 
-            {mediaUrls.length > 0 ? (
-              <Carousel className="project-carousel" ref={carouselRef} draggable swipeToSlide>
-                {mediaUrls.map((url, index) => (
-                  <div
-                    className="project-carousel-slide"
-                    key={`${url}-${index}`}
-                    onMouseDown={handleSlideMouseDown}
-                    onMouseUp={handleSlideMouseUp}
-                  >
-                    <img
-                      src={url}
-                      alt={`${project.name || 'Проект'} ${index + 1}`}
-                      draggable={false}
-                    />
-                  </div>
-                ))}
-              </Carousel>
-            ) : (
-              <div className="project-carousel-empty">Нет изображений</div>
-            )}
+              <ProjectImagesCarousel
+                  media={project.media}
+                  projectName={project.name}
+              />
 
             {project.description && (
               <Paragraph className="project-description">{project.description}</Paragraph>
