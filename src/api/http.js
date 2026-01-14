@@ -10,7 +10,8 @@ const normalizePath = path => {
   return path.startsWith('/') ? path : `/${path}`;
 };
 
-export const API_BASE_URL = normalizeBaseUrl(process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api');
+// Базовый URL по умолчанию включает /api
+export const API_BASE_URL = normalizeBaseUrl(process.env.REACT_APP_API_BASE_URL || 'http://localhost:8088/api');
 
 class ApiError extends Error {
   constructor(message, { status, data } = {}) {
@@ -33,10 +34,19 @@ export async function apiFetch(path, options = {}) {
     body,
     params,
     headers: extraHeaders,
+    skipApiPrefix = false, // Новый флаг: убирает /api из URL
+    responseType = 'json', // Тип ответа: json, blob, text
     ...rest
   } = options;
 
-  let url = `${API_BASE_URL}${normalizePath(path)}`;
+  // Логика базового URL: если нужно убрать /api, удаляем суффикс
+  let baseUrl = API_BASE_URL;
+  if (skipApiPrefix) {
+    // Удаляем '/api' в конце строки, если он есть
+    baseUrl = API_BASE_URL.replace(/\/api$/, '');
+  }
+
+  let url = `${baseUrl}${normalizePath(path)}`;
 
   if (params) {
     const queryParams = new URLSearchParams(params).toString();
@@ -69,19 +79,32 @@ export async function apiFetch(path, options = {}) {
   const response = await fetch(url, requestInit);
 
   const contentType = response.headers.get('content-type') || '';
-  const isJson = contentType.includes('application/json');
 
   let data;
   try {
     if (response.status !== 204) {
-      data = isJson ? await response.json() : await response.text();
+      // Если запрошен blob или контент это картинка, возвращаем Blob
+      if (responseType === 'blob' || contentType.includes('image')) {
+        data = await response.blob();
+      } else if (contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        data = await response.text();
+      }
     }
   } catch {
     data = undefined;
   }
 
   if (!response.ok) {
-    const message = extractErrorMessage(data) || (typeof data === 'string' ? data : '') || response.statusText || 'Request failed';
+    // Если это blob, текст ошибки можем не получить, попробуем текст из ответа или стандартное сообщение
+    let message = 'Request failed';
+    if (typeof data === 'string') {
+      message = data;
+    } else if (data && data.message) {
+      message = data.message;
+    }
+
     throw new ApiError(message, { status: response.status, data });
   }
 

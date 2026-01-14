@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'; // Добавили useCallback
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Row, Col, Tag, message, Spin } from 'antd';
 import { useAuth } from '../auth/AuthContext';
@@ -14,7 +14,7 @@ const ProjectsPage = () => {
 
     const [projects, setProjects] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [materialsList, setMaterialsList] = useState([]); // Добавим список материалов для отображения имен в тегах
+    const [materialsList, setMaterialsList] = useState([]);
 
     const [filters, setFilters] = useState({
         priceRange: [7000000, 17000000],
@@ -23,7 +23,7 @@ const ProjectsPage = () => {
         selectedFloors: [],
     });
 
-    // Загрузка списка материалов (для корректного отображения имен в тегах)
+    // Загрузка списка материалов
     useEffect(() => {
         const fetchMaterials = async () => {
             try {
@@ -36,8 +36,17 @@ const ProjectsPage = () => {
         fetchMaterials();
     }, []);
 
-    // Оборачиваем функцию в useCallback. Зависимость - filters.
-    // Теперь функция будет пересоздаваться только при изменении filters.
+    // Очистка памяти (blob URLs) приUnmount компонента
+    useEffect(() => {
+        return () => {
+            projects.forEach(project => {
+                if (project.image && project.image.startsWith('blob:')) {
+                    URL.revokeObjectURL(project.image);
+                }
+            });
+        };
+    }, [projects]);
+
     const loadProjects = useCallback(async () => {
         try {
             setIsLoading(true);
@@ -64,19 +73,37 @@ const ProjectsPage = () => {
 
             const data = await apiFetch('/projects', { params });
 
-            const formattedProjects = data.map(item => ({
-                id: item.id,
-                name: item.name,
-                image: item.previewImageUrl.startsWith('http')
-                ? item.previewImageUrl
-                : `${mediaBase}${item.previewImageUrl}`,
-                floors: item.floors,
-                material: item.mainMaterials,
-                area: item.totalArea,
-                price: item.basePrice,
-                rooms: null,
-                bedrooms: null,
-                bathrooms: null,
+            // Загружаем картинки для каждого проекта
+            const formattedProjects = await Promise.all(data.map(async (item) => {
+                let finalImage = ''; // Фоллбэк, если картинка не загрузится
+
+                if (item.previewImageUrl) {
+                    try {
+                        // Запрашиваем картинку как blob, пропуская /api часть
+                        const imageBlob = await apiFetch(item.previewImageUrl, {
+                            skipApiPrefix: true,
+                            responseType: 'blob'
+                        });
+                        // Создаем локальный URL для отображения
+                        finalImage = URL.createObjectURL(imageBlob);
+                    } catch (imgError) {
+                        console.error(`Ошибка загрузки изображения для проекта ${item.name}:`, imgError);
+                        // Можно оставить finalImage пустым или поставить заглушку
+                    }
+                }
+
+                return {
+                    id: item.id,
+                    name: item.name,
+                    image: finalImage,
+                    floors: item.floors,
+                    material: item.mainMaterials,
+                    area: item.totalArea,
+                    price: item.basePrice,
+                    rooms: null,
+                    bedrooms: null,
+                    bathrooms: null,
+                };
             }));
 
             setProjects(formattedProjects);
@@ -86,9 +113,8 @@ const ProjectsPage = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [filters]); // Зависимость от filters
+    }, [filters]);
 
-    // Теперь useEffect зависит от loadProjects, что безопасно благодаря useCallback
     useEffect(() => {
         loadProjects();
     }, [loadProjects]);
@@ -114,7 +140,6 @@ const ProjectsPage = () => {
         }));
     };
 
-    // Вспомогательная функция для получения имени материала по коду
     const getMaterialName = (code) => {
         const mat = materialsList.find(m => m.code === code);
         return mat ? mat.name : code;
@@ -141,7 +166,7 @@ key={code}
 closable
 onClose={() => removeTag('selectedMaterials', code)}
 >
-{getMaterialName(code)} {/* Теперь отображаем читаемое имя */}
+{getMaterialName(code)}
 </Tag>
 ))}
 {filters.selectedFloors.map(floor => (
