@@ -126,6 +126,17 @@
   margin: 0;
 }
 
+.projects-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.projects-header-actions .ant-btn {
+  white-space: nowrap;
+}
+
 .app-subtitle {
   margin: 4px 0 0;
   color: #60666f;

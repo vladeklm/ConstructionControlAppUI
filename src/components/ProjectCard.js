@@ -1,7 +1,20 @@
 import React, {useState} from 'react';
-import {Card, Button, Tooltip, message} from 'antd';
-import {HomeOutlined, AreaChartOutlined, RestOutlined, ShoppingCartOutlined} from '@ant-design/icons';
+import {Card, Button, Tooltip} from 'antd';
+import {AreaChartOutlined, ShoppingCartOutlined} from '@ant-design/icons';
 import CreateOrderModal from './CreateOrderModal';
+
+const formatValue = value => (value === null || value === undefined || value === '' ? '-' : value);
+
+const formatPrice = value => {
+    if (value === null || value === undefined || value === '') {
+        return '-';
+    }
+    const number = typeof value === 'number' ? value : Number(value);
+    if (Number.isNaN(number)) {
+        return String(value);
+    }
+    return number.toLocaleString('ru-RU');
+};
 
 const ProjectCard = ({project, onAdd, onOpen, isAuthenticated}) => {
     const [orderModalOpen, setOrderModalOpen] = useState(false);
@@ -29,19 +42,14 @@ const ProjectCard = ({project, onAdd, onOpen, isAuthenticated}) => {
                     description={
                         <>
                             <div className="card-row">
-                                <span>{project.floors} этажа</span>
-                                <span>{project.material}</span>
+                                <span>{formatValue(project.floors)} этажа</span>
+                                <span>{formatValue(project.material)}</span>
                             </div>
                             <div className="card-row spaced">
-                                <span><AreaChartOutlined/> {project.area} м²</span>
-                                <span><HomeOutlined/> {project.rooms} комн.</span>
-                            </div>
-                            <div className="card-row spaced">
-                                <span>Спален: {project.bedrooms}</span>
-                                <span><RestOutlined/> Санузлов: {project.bathrooms}</span>
+                                <span><AreaChartOutlined/> {formatValue(project.area)} m2</span>
                             </div>
                             <div className="card-price">
-                                {project.price.toLocaleString('ru-RU')} ₽
+                                {formatPrice(project.price)} ₽
                             </div>
                             <Tooltip title={isAuthenticated ? 'Создать заявку' : 'Авторизуйтесь, чтобы создать заявку'}>
                                 <Button
