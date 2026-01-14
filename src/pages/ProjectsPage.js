@@ -1,20 +1,26 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Row, Col, Tag, message, Spin } from 'antd';
+import { useLocation, useNavigate } from 'react-router-dom'; // Добавили useLocation
+import { Row, Col, Tag, message, Spin, Button } from 'antd'; // Добавили Button
+import { PlusOutlined } from '@ant-design/icons'; // Добавили иконку
 import { useAuth } from '../auth/AuthContext';
 import ProjectCard from '../components/ProjectCard';
 import Filters from "../components/Filters";
+import CreateProjectModal from "../components/CreateProjectModal"; // Импортируем модалку
 import { apiFetch } from '../api/http';
 
 const mediaBase = process.env.REACT_APP_MEDIA_BASE;
 
 const ProjectsPage = () => {
     const navigate = useNavigate();
-    const { isAuthenticated, openAuthModal } = useAuth();
+    const location = useLocation(); // Получаем location
+    const { isAuthenticated, openAuthModal, user } = useAuth(); // Получаем user
+
+    const isManager = user?.role === 'MANAGER'; // Проверка роли
 
     const [projects, setProjects] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [materialsList, setMaterialsList] = useState([]);
+    const [createModalOpen, setCreateModalOpen] = useState(false); // Состояние модалки
 
     const [filters, setFilters] = useState({
         priceRange: [7000000, 17000000],
@@ -35,6 +41,16 @@ const ProjectsPage = () => {
         };
         fetchMaterials();
     }, []);
+
+    // Обработка открытия модалки через location.state (например, переход с кнопки "Добавить проект")
+    useEffect(() => {
+        if (!location.state?.openCreate) return;
+        if (isManager) {
+            setCreateModalOpen(true);
+        }
+        // Очищаем state, чтобы не открывалась снова при перезагрузке (если replace используется)
+        navigate('/projects', { replace: true, state: {} });
+    }, [location.state, isManager, navigate]);
 
     // Очистка памяти (blob URLs) приUnmount компонента
     useEffect(() => {
@@ -133,6 +149,16 @@ const ProjectsPage = () => {
         message.info(`Открыть страницу проекта "${project.name}" (заглушка)`);
     };
 
+    const handleOpenCreateProject = () => {
+        if (!isManager) return;
+        setCreateModalOpen(true);
+    };
+
+    const handleCreateSuccess = () => {
+        setCreateModalOpen(false);
+        loadProjects(); // Перезагружаем список проектов после создания
+    };
+
     const removeTag = (key, value) => {
         setFilters(prev => ({
             ...prev,
@@ -155,9 +181,22 @@ const ProjectsPage = () => {
 <div className="projects-header">
 <div>
 <h1>Подбор проектов</h1>
+<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 <p className="app-subtitle">
 Найдено проектов: {projects.length}
 </p>
+{/* Кнопка для менеджеров */}
+{isManager && (
+<Button
+type="primary"
+icon={<PlusOutlined />}
+onClick={handleOpenCreateProject}
+style={{ marginLeft: '16px' }}
+>
+Добавить проект
+</Button>
+)}
+</div>
 </div>
 <div className="chips">
 {filters.selectedMaterials.map(code => (
@@ -204,6 +243,14 @@ isAuthenticated={isAuthenticated}
 )}
 </Row>
 )}
+
+{/* Модальное окно создания проекта */}
+<CreateProjectModal
+open={createModalOpen}
+onClose={() => setCreateModalOpen(false)}
+materialOptions={materialsList}
+onSuccess={handleCreateSuccess}
+/>
 </Col>
 </Row>
 </div>
