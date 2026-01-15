@@ -149,7 +149,7 @@ fetchOrderDetails();
 const fetchOrderDetails = async () => {
 setLoading(true);
 try {
-const orderData  = await getOrderById(id);
+const orderData = await getOrderById(id);
 setOrder(orderData);
 
 if (orderData.projectTemplateId) {
@@ -158,7 +158,7 @@ setProject(projectData);
 }
 
 let activeIndex = -1
-if(orderData.constructionObjectId){
+if (orderData.constructionObjectId) {
 const {stages} = await getStagesForObject(orderData.constructionObjectId);
 setStages(stages);
 activeIndex = stages.findIndex(stage => stage.status === 'IN_PROGRESS');
@@ -197,7 +197,7 @@ setReportsLoading(true);
 try {
 const stage = stages[activeStageIndex];
 const reportsData = await getStageReports(stage.id);
-setStageReports(reportsData|| []);
+setStageReports(reportsData || []);
 } catch (error) {
 console.error('Error fetching stage reports:', error);
 } finally {
@@ -334,7 +334,6 @@ const renderOrderInfo = () => (
 <Text strong>Телефон:</Text>
 <Text style={{marginLeft: '8px'}}>{order?.phone || 'Не указан'}</Text>
 </div>
-
 <div className="info-item">
 <MailOutlined style={{marginRight: '8px', color: '#fa8c16'}}/>
 <Text strong>Email:</Text>
@@ -830,7 +829,15 @@ return (
 <VideoCameraOutlined style={{marginRight: '8px'}} />
 Онлайн трансляция с объекта
 </Title>
-<WebRTCPlayer constructionObjectId={order.constructionObjectId} />
+{/*
+                               ВАЖНО: Добавлен key={`webrtc-${activeTab}`}.
+                               Это принудительно перерисовывает плеер при каждом переключении на вкладку "progress",
+                               решая проблему с зависшим видео.
+                            */}
+<WebRTCPlayer
+constructionObjectId={order.constructionObjectId}
+key={`webrtc-${activeTab}`}
+/>
 </div>
 <Divider/>
 </>
@@ -993,8 +1000,6 @@ return (
 </Space>
 );
 };
-
-
 
 if (loading) {
 return (
