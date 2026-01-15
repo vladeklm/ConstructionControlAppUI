@@ -37,7 +37,8 @@ import './OrderDetailsPage.css';
 import {getProjectTemplateById} from "../api/projectApi";
 import {getStageReports, getStagesForObject} from "../api/stagesApi";
 import ProjectImagesCarousel from "../components/ProjectImagesCarousel";
-import WebRTCPlayer from '../components/WebRTCPlayer'; // Импортируем плеер
+import WebRTCPlayer from '../components/WebRTCPlayer';
+import ChatComponent from '../components/ChatComponent'; // Импортируем чат
 import {
 getDocument,
 getDocumentChecklist,
@@ -346,7 +347,7 @@ const renderOrderInfo = () => (
 <Button
 type="primary"
 block
-onClick={() => message.info('Чат будет реализован позже')}
+onClick={() => setActiveTab('chat')} // Переключаем на вкладку чата
 icon={<TeamOutlined/>}
 >
 Открыть чат с менеджером
@@ -474,6 +475,10 @@ const renderStagesProgress = () => (
 </TabPane>
 <TabPane tab="Команда" key="team">
 {renderStageTeam()}
+</TabPane>
+{/* Добавленная вкладка Чата */}
+<TabPane tab="Чат" key="chat">
+<ChatComponent orderId={order?.id} />
 </TabPane>
 </Tabs>
 </Card>
